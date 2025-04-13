@@ -1,23 +1,31 @@
 import os
 import requests
+from bs4 import BeautifulSoup
 from telegram import Update
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
-# استخدام API خارجية لسحب الفيديو من Instagram
+# محاولة استخراج الفيديو من صفحة HTML مباشرة (يدعم Reels)
 def get_instagram_video(insta_url):
     try:
-        api_url = f"https://api.keeptube.cc/insta?url={insta_url}"
-        response = requests.get(api_url, timeout=10)
-        data = response.json()
-        if "url" in data:
-            return data["url"]
+        headers = {
+            "User-Agent": "Mozilla/5.0",
+            "Accept-Language": "en-US,en;q=0.9",
+        }
+        res = requests.get(insta_url, headers=headers)
+        if res.status_code != 200:
+            print("Error: status code", res.status_code)
+            return None
+        soup = BeautifulSoup(res.text, 'html.parser')
+        video_tags = soup.find_all("meta", property="og:video")
+        if video_tags:
+            return video_tags[0].get("content")
     except Exception as e:
-        print("Error fetching video:", e)
+        print("Error while scraping video:", e)
     return None
 
 # أمر /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text("أرسل لي رابط فيديو من إنستقرام (منشور عام أو Reels)، وسأقوم بتحميله لك!")
+    await update.message.reply_text("أرسل رابط فيديو من إنستقرام (منشور أو Reels عام)، وسأقوم بتحميله لك!")
 
 # التعامل مع الرسائل
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -27,13 +35,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if video_url:
             await update.message.reply_video(video=video_url)
         else:
-            await update.message.reply_text("ما قدرت أجيب الفيديو. تأكد إن الرابط عام أو جرب مرة ثانية.")
+            await update.message.reply_text("ما قدرت أجيب الفيديو. تأكد إن الرابط عام أو جرب رابط ثاني.")
     else:
         await update.message.reply_text("أرسل رابط إنستقرام صالح.")
 
 # تشغيل البوت
 if __name__ == '__main__':
-    TOKEN = os.getenv("BOT_TOKEN")  # متغير البيئة من Render
+    TOKEN = os.getenv("BOT_TOKEN")
     if not TOKEN:
         raise Exception("BOT_TOKEN environment variable not set.")
     

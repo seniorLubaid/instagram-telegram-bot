@@ -16,11 +16,11 @@ def get_instagram_video(insta_url):
             return meta.get("content")
     return None
 
-# /start
+# /start command
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text("أرسل لي رابط فيديو من إنستقرام (منشور عام) وسأقوم بتحميله لك!")
 
-# التعامل مع الرسائل
+# التعامل مع أي رسالة تحتوي رابط
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     url = update.message.text.strip()
     if "instagram.com" in url:
@@ -34,7 +34,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 # تشغيل البوت
 if __name__ == '__main__':
-    TOKEN = os.getenv("BOT_TOKEN")  # يسحب التوكن من Environment Variable
+    TOKEN = os.getenv("BOT_TOKEN")  # يأخذ التوكن من متغير البيئة
     if not TOKEN:
         raise Exception("BOT_TOKEN environment variable not set.")
     
@@ -43,4 +43,5 @@ if __name__ == '__main__':
     app.add_handler(CommandHandler("start", start))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 
+    print("Bot started and polling...")  # طباعة تأكيد في الـ logs
     app.run_polling()

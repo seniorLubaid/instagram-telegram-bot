@@ -1,7 +1,8 @@
-from telegram import Update
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+import os
 import requests
 from bs4 import BeautifulSoup
+from telegram import Update
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
 
 # استخراج رابط الفيديو من إنستقرام
 def get_instagram_video(insta_url):
@@ -32,8 +33,11 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("أرسل رابط إنستقرام صالح.")
 
 # تشغيل البوت
-if _name_ == '_main_':
-    TOKEN = "YOUR_BOT_TOKEN"  # استبدله بالتوكن الخاص فيك
+if __name__ == '__main__':
+    TOKEN = os.getenv("BOT_TOKEN")  # يسحب التوكن من Environment Variable
+    if not TOKEN:
+        raise Exception("BOT_TOKEN environment variable not set.")
+    
     app = ApplicationBuilder().token(TOKEN).build()
 
     app.add_handler(CommandHandler("start", start))
